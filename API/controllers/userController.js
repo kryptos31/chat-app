@@ -38,3 +38,53 @@ module.exports.loginUser = (reqBody) => {
 		}
 	})
 }
+
+module.exports.getProfile = (reqBody) => {
+	return User.findById(reqBody.userId).then(result => {
+
+		if(result == null ){
+			return false;
+		} else {
+			result.password = "";
+			return result;
+		}
+	})
+}
+
+
+module.exports.updateUserInfo = async (userId, updatedInfo) => {
+    try {
+        const user = await User.findById(userId);
+
+        if (user) {
+            
+            user.firstName = updatedInfo.firstName || user.firstName;
+            user.lastName = updatedInfo.lastName || user.lastName;
+            user.email = updatedInfo.email || user.email;
+            user.mobileNo = updatedInfo.mobileNo || user.mobileNo;
+
+            await user.save();
+            return true; 
+        } else {
+            return false; 
+        }
+    } catch (error) {
+        console.error("Error updating user information:", error);
+        return false;
+    }
+};
+
+module.exports.removeUser = async (userId) => {
+    try {
+        const user = await User.findByIdAndDelete(userId);
+        
+        if (user) {
+            return true; 
+        } else {
+            return false; 
+        }
+    } catch (error) {
+        console.error("Error removing user:", error);
+        return false; 
+    }
+};
