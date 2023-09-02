@@ -27,6 +27,14 @@ const userSchema = new mongoose.Schema({
 	activeStatus : {
 		type: Boolean,
 		default: true
-	}
+	},
+	channelsJoined : [
+		{
+			name: {
+				type: String,
+				default: "Welcome"
+			}
+		}
+	]
 })
 module.exports = mongoose.model("User", userSchema);

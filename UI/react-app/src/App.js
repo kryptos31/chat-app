@@ -35,7 +35,10 @@ function App() {
         localStorage.setItem("sessionID", sessionID);
         // save the ID of the user
         socket.userID = userID;
+
+        socket.emit("user connected", userID);
       });
+
     }
   }, [])
 
