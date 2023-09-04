@@ -28,13 +28,9 @@ const userSchema = new mongoose.Schema({
 		type: Boolean,
 		default: true
 	},
-	channelsJoined : [
-		{
-			name: {
-				type: String,
-				default: "Welcome"
-			}
-		}
-	]
+	channelsJoined : {
+		type: Array,
+		default: [{name: 'Welcome'}]
+	}
 })
 module.exports = mongoose.model("User", userSchema);

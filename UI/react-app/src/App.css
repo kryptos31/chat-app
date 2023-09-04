@@ -36,3 +36,15 @@
     transform: rotate(360deg);
   }
 }
+
+.channels-container{
+  background-color: #000710;
+}
+.message-card{
+  border-radius: 2rem;
+  border: 1px solid black;
+  display: inline-block;
+}
+.from-user{
+  text-align: right;
+}

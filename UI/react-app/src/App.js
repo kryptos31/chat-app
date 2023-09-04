@@ -5,12 +5,12 @@ import {UserProvider} from './UserContext';
 
 import Login from './pages/Login'
 import ChatTab from './pages/ChatTab'
+
 import socket from "./socket";
 
 
 
 function App() {
-
   const [user, setUser] = useState({
     id: null,
     isAdmin: null
@@ -44,7 +44,7 @@ function App() {
 
   return (
     <UserProvider value = {{user, setUser, unsetUser}}>
-      <BrowserRouter>
+      <BrowserRouter>        
         <Container fluid>  
           <Routes>
             <Route path='/' element = {<Login/>} />

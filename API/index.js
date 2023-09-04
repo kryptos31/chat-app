@@ -98,36 +98,27 @@ io.on("connection", (socket) => {
 		})
 	})
 
-	socket.on("check channel message", (channel) => {
-		Channel.findOne({name: channel}).then((res) => {
-			console.log(res.messages)
+	socket.on("get channel message", (channel) => {
+		Channel.findOne({name: channel}, { messages: { $slice: -10 } } ).then((res) => {
 			socket.emit("channel messages" , res.messages)
 		})
 	})	
 
-	socket.on("channel message", ({content, to, from}) => {
-		socket.to(to).emit("channel message", {content, from});
-	})
-
-	socket.on("disconnect", () => {
-	  console.log(`${socket.userID} disconnected`);
-	  ONLINE_USERS_ID.pop(socket.userID)
-	});
-
-	socket.on("private message", ({content, to, from}) => {
+	socket.on("send message", ({content, to, from}) => {
 		console.log({content, to, from})
-		socket.to(to).emit("private message", {content, from});
-		socket.emit("private message", {content, from})
+		socket.to(to).emit("broadcasted message", {content, from, to});
+		socket.emit("broadcasted message", {content, from, to})
 
 		Channel.findOneAndUpdate({name: to}, { $push: { messages: { message: content, from: from} } }).then((res) => {
 			console.log(res)
 		})
 	})
 
-	socket.on("sent message", (content) => {
-		console.log(content)
-		socket.emit("sent message", "message sent from server")
-	})
+
+	socket.on("disconnect", () => {
+	  console.log(`${socket.userID} disconnected`);
+	});
+
 });
 
 
