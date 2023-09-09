@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const crypto = require("crypto");
 const randomId = () => crypto.randomBytes(8).toString("hex");
+const key = 'chatgroupkey'
 
 const Channel = require("./models/Channel");
 const User = require("./models/User");
@@ -45,13 +46,21 @@ io.on("connection", (socket) => {
 		console.log(`${email} connected socket: ${socket.id}`);
 
 		User.findOne({email: email}).then((res) => {
-			socket.emit("channels joined", res.channelsJoined)
+			if(res){
+				socket.emit("channels joined", res.channelsJoined)
 
-			res.channelsJoined.map((channel) => {
-				socket.join(channel.name)
-			})
+				res.channelsJoined.map((channel) => {
+					socket.join(channel.name)
+				})
+			}
 		})
 	});
+
+	socket.on("search channels", ({channel}) => {
+		Channel.find({name: channel}).then((channels) => {
+			socket.emit("channels found", channels)
+		})
+	})
 
 	sessionStore.saveSession(socket.sessionID, {
 	  userID: socket.userID,
@@ -99,7 +108,8 @@ io.on("connection", (socket) => {
 	})
 
 	socket.on("get channel message", (channel) => {
-		Channel.findOne({name: channel}, { messages: { $slice: -10 } } ).then((res) => {
+		Channel.findOne({name: channel}, { messages: { $slice: -15 } } ).then((res) => {
+			console.log(res)
 			socket.emit("channel messages" , res.messages)
 		})
 	})	
@@ -111,6 +121,23 @@ io.on("connection", (socket) => {
 
 		Channel.findOneAndUpdate({name: to}, { $push: { messages: { message: content, from: from} } }).then((res) => {
 			console.log(res)
+		})
+	})
+
+	socket.on("delete message", ({id, channel, from}) => {
+		console.log(`${id} ${channel} ${from}`)
+		Channel.findOne({name: channel}, { messages: { $slice: -15 } } ).then((channelDetails) => {
+			channelDetails.messages.forEach((message) => {
+				if(message.id == id){
+					message.message = "message-unsent-system-deleted"
+					channelDetails.save().then((res) => {
+						console.log(res)
+					})
+				}
+			})
+			
+			socket.to(channel).emit("channel messages" , channelDetails.messages)
+			socket.emit("channel messages" , channelDetails.messages)
 		})
 	})
 
@@ -130,7 +157,6 @@ io.use((socket, next) => {
     if (session) {
       socket.sessionID = sessionID;
       socket.userID = session.userID;
-      socket.username = session.username;
       console.log(`session ID found ${socket.sessionID} userID: ${socket.userID}`)
       return next();
     }
@@ -142,7 +168,7 @@ io.use((socket, next) => {
   // create new session
   socket.sessionID = randomId();
   socket.userID = username;
-  socket.username = username;
+  
   console.log(`new session ID ${socket.sessionID}`)
   next();
 });

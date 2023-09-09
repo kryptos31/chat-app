@@ -16,10 +16,6 @@ const userSchema = new mongoose.Schema({
 		type: String,
 		required :[true, "Email is required."]
 	},
-	mobileNo : {
-		type: Number,
-		required :[true, "Mobile is required."]
-	},
 	password : {
 		type : String,
 		required: [true, "Password is required"]

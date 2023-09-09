@@ -38,8 +38,22 @@ function App() {
 
         socket.emit("user connected", userID);
       });
-
     }
+  }, [])
+
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_API_URL}/users/details`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      setUser({
+        id: data._id,
+        isAdmin: data.isAdmin
+      })
+    })
   }, [])
 
   return (

@@ -23,7 +23,9 @@
   font-size: calc(10px + 2vmin);
   color: white;
 }
-
+body {
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+}
 .App-link {
   color: #61dafb;
 }
@@ -37,14 +39,115 @@
   }
 }
 
+html, #root{
+  background-color: #061225;
+}
+
+#loginCard{
+  background-color: #030913;
+}
+
+#loginCard p {
+  color: white;
+}
+#loginCard a{
+  text-decoration: none;
+}
+
 .channels-container{
-  background-color: #000710;
+  height: 80vh;
+  overflow-y: auto;
+  color: white;
+}
+.channels-container::-webkit-scrollbar{
+  width: 0px;
+}
+.offcanvas-body::-webkit-scrollbar{
+  width: 2px;
+}
+.offcanvas-body::-webkit-scrollbar-thumb{
+  background: #888;
 }
 .message-card{
-  border-radius: 2rem;
-  border: 1px solid black;
+  border-radius: 1rem;
+/*  border: 1px solid black;*/
   display: inline-block;
+  background-color: #061225;
+  color: white;
 }
 .from-user{
   text-align: right;
+}
+#delete-message{
+  display: none;
+}
+
+.from-user:hover > #delete-message{
+  display: inline-block;
+}
+.message-container{
+  height: 80vh;
+  overflow-y: auto;
+  color: black;
+}
+.message-container::-webkit-scrollbar{
+  width: 2px;
+}
+.message-container::-webkit-scrollbar-thumb{
+  background: #888;
+}
+.chat-window{
+  background-color: #030913;
+}
+.message-bar, .search-bar{
+  background-color: #061225;
+  border: none;
+  width: 100%;  
+  border-radius: 5px;
+  color: white;
+}
+.message-input, .search-input, .login-input{
+  background-color: #061225;
+  width: 90%;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 5px;
+  color: white;
+}
+
+.login-input{
+  width: 100%;
+  background-color: #061225;
+}
+
+.create-channel-btn{
+  background-color: #061225;
+  border: none;
+  height: 2rem;
+  width: 2rem;
+  border-radius: 5px;
+}
+.message-input:focus, .search-input:focus{
+  outline: none;
+}
+.message-input::placeholder, .search-input::placeholder{
+  color: white;
+  font-style: normal;
+  font-weight: 200;
+}
+.navbar{
+  background-color: rgba(0, 7, 16, 0.5);
+  color: white;
+}
+#sidebar{
+  background-color: #000710 !important;
+  color: white;
+}
+.navbar button, .navbar span{
+  transform: scale(0.8);
+}
+.deleted-message{
+  border: 1px solid #888;
+  background-color: rgba(0, 0, 0, 0);
+  font-style: italic;
 }

@@ -21,6 +21,16 @@ module.exports.registerUser = async (reqBody) => {
 	})
 }
 
+module.exports.checkEmail = async(reqBody) => {
+	return User.find({email : reqBody.email}).then(result => {
+		if (result.length > 0){
+			return true;
+		} else {
+			return false;
+		}
+	})
+}
+
 module.exports.loginUser = (reqBody) => {
 	return User.findOne({email : reqBody.email}).then(result => {
 		

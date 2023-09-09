@@ -13,6 +13,10 @@ router.post("/login", (req, res) => {
 	userController.loginUser(req.body).then(resultFromController => res.send(resultFromController))
 })
 
+router.post("/checkEmail", (req, res) => {
+    userController.checkEmail(req.body).then(resultFromController => res.send(resultFromController))
+})
+
 router.get("/details", auth.verify, (req, res) => {
     const userData = auth.decode(req.headers.authorization);
     userController.getProfile({userId : userData.id}).then(resultFromController => res.send(resultFromController))
