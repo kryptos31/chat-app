@@ -7,6 +7,8 @@ require('dotenv').config();
 
 const crypto = require("crypto");
 const randomId = () => crypto.randomBytes(8).toString("hex");
+const randomMongodbId = () => crypto.randomBytes(24).toString("hex");
+const randomMessageId = () => crypto.randomBytes(24).toString("hex");
 const key = 'chatgroupkey'
 
 const Channel = require("./models/Channel");
@@ -38,7 +40,7 @@ mongoose.connect(`${process.env.DB_CONNECTION_STRING}/Chat_Application?retryWrit
 
 let db = mongoose.connection;
 let ONLINE_USERS_ID = []
-
+let newChannelId, newMessageId
 
 // Prints when websocket is established
 io.on("connection", (socket) => {
@@ -50,7 +52,7 @@ io.on("connection", (socket) => {
 				socket.emit("channels joined", res.channelsJoined)
 
 				res.channelsJoined.map((channel) => {
-					socket.join(channel.name)
+					socket.join(channel._id)
 				})
 			}
 		})
@@ -75,29 +77,31 @@ io.on("connection", (socket) => {
 
 	socket.join(socket.userID);
 
-	socket.on("join channel", ({channel, userID}) => {
+	socket.on("join channel", ({_id, channel, userID}) => {
 		User.findOne({email: userID}).then((res) => {
-			if(res.channelsJoined.some((item) => { return item.name == channel })){
+			if(res.channelsJoined.some((item) => { return item._id == _id })){
 				return socket.emit("already joined")
 			} else {
-				socket.join(channel);
-				socket.emit("user joined channel", channel)
+				socket.join(_id);
+				
 
-				Channel.findOneAndUpdate({name: channel}, { $push: { members: { email: userID } } }).then((res) => {
+				Channel.findOneAndUpdate({_id: _id}, { $push: { members: { email: userID } } }).then((res) => {
 					console.log(res)
 				})
 
-				User.findOneAndUpdate({email: userID}, { $push: { channelsJoined: { name: channel } } }).then((res) => {
-					console.log(res)
+				User.findOneAndUpdate({email: userID}, { $push: { channelsJoined: {_id: _id, name: channel } } }).then((item) => {
+					socket.emit("channels joined", [...res.channelsJoined, {_id: _id, name: channel}])
 				})
 			}
 		})
 	})
 
-	socket.on("create channel", ({channel, userID}) => {	
-
+	socket.on("create channel", ({channel, description, userID}) => {	
+		newChannelId = randomMongodbId();
 		let newChannel = new Channel({
+			_id: newChannelId,
 			name: channel,
+			description: description,
 			members: [],
 			messages: []
 		})
@@ -105,39 +109,52 @@ io.on("connection", (socket) => {
 		newChannel.save().then((res) => {
 			console.log(res)
 		})
+
+		socket.emit("user joined channel", {_id: newChannelId, name: channel})
+		User.findOneAndUpdate({email: userID}, { $push: { channelsJoined: {_id: newChannelId, name: channel } } }).then((res) => {
+			console.log(res)
+		})
+
+		Channel.findOneAndUpdate({_id: newChannelId}, { $push: { members: { email: userID } } }).then((res) => {
+			console.log(res)
+		})
+
+		socket.join(newChannelId);
 	})
 
 	socket.on("get channel message", (channel) => {
-		Channel.findOne({name: channel}, { messages: { $slice: -15 } } ).then((res) => {
+		Channel.findOne({_id: channel}, { messages: { $slice: -15 } } ).then((res) => {
 			console.log(res)
-			socket.emit("channel messages" , res.messages)
+			socket.emit("channel messages" , {id: channel, messages: res.messages})
 		})
 	})	
 
 	socket.on("send message", ({content, to, from}) => {
-		console.log({content, to, from})
-		socket.to(to).emit("broadcasted message", {content, from, to});
-		socket.emit("broadcasted message", {content, from, to})
+		newMessageId = randomMessageId();
 
-		Channel.findOneAndUpdate({name: to}, { $push: { messages: { message: content, from: from} } }).then((res) => {
+		console.log({content, to, from})
+		socket.to(to).emit("broadcasted message", {content: content, from: from, to: to, id: newMessageId});
+		socket.emit("broadcasted message", {content: content, from: from, to: to, id: newMessageId})
+
+		Channel.findOneAndUpdate({_id: to}, { $push: { messages: { message: content, from: from, _id: newMessageId} } }).then((res) => {
 			console.log(res)
 		})
 	})
 
 	socket.on("delete message", ({id, channel, from}) => {
 		console.log(`${id} ${channel} ${from}`)
-		Channel.findOne({name: channel}, { messages: { $slice: -15 } } ).then((channelDetails) => {
+		Channel.findOne({_id: channel}, { messages: { $slice: -15 } } ).then((channelDetails) => {
 			channelDetails.messages.forEach((message) => {
-				if(message.id == id){
-					message.message = "message-unsent-system-deleted"
-					channelDetails.save().then((res) => {
-						console.log(res)
-					})
+				if(message._id == id){
+					message.message = "message-unsent-system-deleted"			
 				}
 			})
-			
-			socket.to(channel).emit("channel messages" , channelDetails.messages)
-			socket.emit("channel messages" , channelDetails.messages)
+
+			channelDetails.markModified('messages')
+			channelDetails.save();
+					
+			socket.to(channel).emit("channel messages" , {id: channel, messages: channelDetails.messages})
+			socket.emit("channel messages" , {id: channel, messages: channelDetails.messages})
 		})
 	})
 

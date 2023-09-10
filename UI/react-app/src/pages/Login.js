@@ -225,7 +225,7 @@ export default function Login() {
 							icon: 'success',
 							text: 'You can now login.'
 						})
-
+						socket.emit("user registered", regEmail)
 						setRegEmail('')
 						setRegFirstname('')
 						setRegLastname('')

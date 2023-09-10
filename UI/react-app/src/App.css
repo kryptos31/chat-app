@@ -151,3 +151,7 @@ html, #root{
   background-color: rgba(0, 0, 0, 0);
   font-style: italic;
 }
+
+.modal-content{
+  background-color: #000710 !important;
+}

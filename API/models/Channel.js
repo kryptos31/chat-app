@@ -1,6 +1,13 @@
 const mongoose = require("mongoose");
 const channelSchema = new mongoose.Schema({
+	_id:{
+		type: String
+	},
 	name : {
+		type: String,
+		required: true
+	},
+	description : {
 		type: String,
 		required: true
 	},
@@ -18,6 +25,9 @@ const channelSchema = new mongoose.Schema({
 				type: String				
 			},
 			from: {
+				type: String
+			},
+			_id: {
 				type: String
 			}
 		}
