@@ -65,6 +65,12 @@ export default function ChatTab(){
 		console.log(`channel shown  ${selectedChannelID}`)
 	}
 
+	function sendMessagePress() {
+		socket.emit("send message", {content: message, to: selectedChannelID, from: socket.userID});
+		setMessage('')
+		inputRef.current.focus()
+	}
+
 	let sendMessage = (event) => {
 	  if(event.key === 'Enter'){	    
 	    socket.emit("send message", {content: message, to: selectedChannelID, from: socket.userID});
@@ -220,7 +226,7 @@ export default function ChatTab(){
 						selectedChannelID != 1 ?
 						<div className="mb-5 message-bar">
 							<input onKeyPress={sendMessage} className="message-input" ref={inputRef} type="text" value={message} placeholder="Type a message here" onChange={e => setMessage(e.target.value)}></input>
-							<svg className="message-arrow" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+							<svg className="message-arrow" onClick={e => {sendMessagePress()}} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
 								<path d="M3 20V14L11 12L3 10V4L22 12L3 20Z" fill="white"/>
 							</svg>
 						</div>
