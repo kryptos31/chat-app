@@ -4,7 +4,7 @@ import {Container, Card, Button, Form, Nav, Navbar, Offcanvas, Modal} from 'reac
 
 import socket from "../socket";
 import UserContext from '../UserContext';
-import Login from '../Login'
+import Login from './Login'
 
 
 export default function ChatTab(){
