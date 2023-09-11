@@ -168,22 +168,22 @@ io.on("connection", (socket) => {
 
 io.use((socket, next) => {
   const sessionID = socket.handshake.auth.sessionID;
-  if (sessionID) {
-    // find existing session
-    const session = sessionStore.findSession(sessionID);
-    if (session) {
-      socket.sessionID = sessionID;
-      socket.userID = session.userID;
-      console.log(`session ID found ${socket.sessionID} userID: ${socket.userID}`)
-      return next();
-    }
-  }
+  // if (sessionID) {
+  //   // find existing session
+  //   const session = sessionStore.findSession(sessionID);
+  //   if (session) {
+  //     socket.sessionID = sessionID;
+  //     socket.userID = session.userID;
+  //     console.log(`session ID found ${socket.sessionID} userID: ${socket.userID}`)
+  //     return next();
+  //   }
+  // }
   const username = socket.handshake.auth.username;
   if (!username) {
     return next(new Error("invalid username"));
   }
   // create new session
-  socket.sessionID = randomId();
+  socket.sessionID = sessionID;
   socket.userID = username;
   
   console.log(`new session ID ${socket.sessionID}`)

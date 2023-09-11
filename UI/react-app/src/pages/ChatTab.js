@@ -1,6 +1,9 @@
 import {useEffect, useState, useContext, useRef} from 'react'
+import {useNavigate} from 'react-router-dom'
 import {Container, Card, Button, Form, Nav, Navbar, Offcanvas, Modal} from 'react-bootstrap';
+
 import socket from "../socket";
+import UserContext from '../UserContext';
 
 
 export default function ChatTab(){
@@ -17,6 +20,8 @@ export default function ChatTab(){
 	let channelShown = ''
 	const divRef = useRef(null);
 	const inputRef = useRef(null);
+	const navigate = useNavigate()
+	const {user, setUser} = useContext(UserContext);
 
 
 	const [showOffcanvas, setShowOffcanvas] = useState(false);
@@ -32,6 +37,9 @@ export default function ChatTab(){
     const handleShowModal = () => setShowModal(true);
 
 	useEffect(() => {
+		if(user.id == null || user.id == undefined){
+			return
+		}
 		divRef.current.scrollIntoView({ behavior: 'smooth' });
 	});
 
@@ -66,17 +74,23 @@ export default function ChatTab(){
 	}
 
 	function sendMessagePress() {
+		if(message == ''){
+			return
+		}
 		socket.emit("send message", {content: message, to: selectedChannelID, from: socket.userID});
 		setMessage('')
 		inputRef.current.focus()
 	}
 
 	let sendMessage = (event) => {
-	  if(event.key === 'Enter'){	    
-	    socket.emit("send message", {content: message, to: selectedChannelID, from: socket.userID});
-		setMessage('')
-		inputRef.current.focus()
-	  }
+		if(message == ''){
+			return
+		}
+		if(event.key === 'Enter'){	    
+			socket.emit("send message", {content: message, to: selectedChannelID, from: socket.userID});
+			setMessage('')
+			inputRef.current.focus()
+		}
 	}
 
 	function searchChannel(event){
@@ -169,6 +183,10 @@ export default function ChatTab(){
 	})
 
 	return(
+		user.id == null || user.id == undefined
+		?
+		navigate('/')
+		:
 		<>
 			<Modal size='md' show={showModal} onHide={handleCloseModal} backdrop="static" keyboard={false} centered>
 				<Modal.Header style={{color: 'white'}} >
@@ -187,8 +205,8 @@ export default function ChatTab(){
 			</Modal>
 			<div className="row chat-window">
 				<Navbar fixed="top" expand="lg col-12 col-lg-8 offset-lg-4">
-	                <Navbar.Toggle aria-controls="basic-navbar-nav" className="d-lg-none" onClick={handleShowOffcanvas} />
-	                <Nav className="col-10 col-sm-10 col-md-11 col-lg-8">
+	                <Navbar.Toggle aria-controls="basic-navbar-nav" className="d-lg-none mx-3" onClick={handleShowOffcanvas} />
+	                <Nav className="col-9 col-sm-10 col-md-10 col-lg-8">
 	                    <Nav.Item className="mx-3">
 	                    	<Nav.Item><h5>{selectedChannelName}</h5></Nav.Item>
 	                    </Nav.Item>

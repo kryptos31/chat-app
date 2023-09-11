@@ -173,6 +173,7 @@ export default function Login() {
 		.then(data => {
 			setUser({
 				id: data._id,
+				email: data.email,
 				isAdmin: data.isAdmin
 			})
 		})
@@ -269,14 +270,14 @@ export default function Login() {
 					icon: 'success'
 				})
 				
-				socket.auth = { username: email }
+				socket.auth = { username: email, sessionID: data.access }
 				socket.connect();
 				socket.emit("user connected", email);
 				
 				socket.on("session", ({ sessionID, userID }) => {
 				  // attach the session ID to the next reconnection attempts
 				  socket.auth = { sessionID };
-				  localStorage.setItem("sessionID", sessionID);
+				  // localStorage.setItem("sessionID", sessionID);
 				  socket.userID = userID;
 				});
 
