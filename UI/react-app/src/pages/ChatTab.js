@@ -4,6 +4,7 @@ import {Container, Card, Button, Form, Nav, Navbar, Offcanvas, Modal} from 'reac
 
 import socket from "../socket";
 import UserContext from '../UserContext';
+import Login from './Login'
 
 
 export default function ChatTab(){
@@ -21,7 +22,7 @@ export default function ChatTab(){
 	const divRef = useRef(null);
 	const inputRef = useRef(null);
 	const navigate = useNavigate()
-	const {user, setUser} = useContext(UserContext);
+	const {user, setUser, unsetUser} = useContext(UserContext);
 
 
 	const [showOffcanvas, setShowOffcanvas] = useState(false);
@@ -69,8 +70,7 @@ export default function ChatTab(){
 		setSelectedChannelID(channelID)
 		setSelectedChannelName(channelName)
 		channelShown = channelID;
-		handleCloseOffcanvas();
-		console.log(`channel shown  ${selectedChannelID}`)
+		handleCloseOffcanvas();		
 	}
 
 	function sendMessagePress() {
@@ -93,6 +93,10 @@ export default function ChatTab(){
 		}
 	}
 
+	function searchChannelPress(){
+		socket.emit("search channels" , {channel})
+	}
+
 	function searchChannel(event){
 		if(event.key === 'Enter'){
 			socket.emit("search channels" , {channel})
@@ -103,16 +107,24 @@ export default function ChatTab(){
 		socket.emit("delete message", {id: messageID, channel: channelID, from: socket.userID});
 	}
 
+	function logout(){
+		unsetUser();
+		setUser({
+			id: null,
+			isAdmin: null
+		});
+		socket.disconnect();
+	}
+
 	socket.on("already joined", () => {
 		console.log('already joined channel')
 	})
 
-	socket.on("broadcasted message", (message) => {
-		console.log(message.id)
+	socket.on("broadcasted message", (message) => {		
 		if(channelShown == message.to){
 			socket.userID == message.from ? 
 			setMessageReceived(messageReceived => [...messageReceived, 
-				<div className="from-user">
+				<div key={message.id} className="from-user">
 					<div id="delete-message">
 						<svg onClick={(e) => {deleteMessage(message.to, message.id)}} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="rgba(181, 17, 17, 0.6666666666666666)" d="M3.94 5L2.22 3.28a.75.75 0 1 1 1.06-1.06l18.5 18.5a.75.75 0 0 1-1.06 1.06l-2.19-2.19A3.751 3.751 0 0 1 15.025 22H8.974a3.75 3.75 0 0 1-3.733-3.389L4.07 6.5H2.75a.75.75 0 0 1 0-1.5h1.19ZM15 16.06l-1.5-1.5v2.69a.75.75 0 0 0 1.5 0v-1.19Zm-4.5-4.5L9 10.06v7.19a.75.75 0 0 0 1.5 0v-5.69ZM15 9.75v2.069l4.026 4.026l.905-9.345h1.319a.75.75 0 0 0 0-1.5H15.5a3.5 3.5 0 1 0-7 0h-.318l5.318 5.319V9.75a.75.75 0 0 1 1.5 0ZM14 5h-4a2 2 0 1 1 4 0Z"/></svg>
 					</div>
@@ -120,7 +132,7 @@ export default function ChatTab(){
 				</div>])
 			:
 			setMessageReceived(messageReceived => [...messageReceived, 
-				<div>
+				<div key={message.id}>
 					<div className={'mx-2 my-1 p-2 px-3 message-card'}>{message.content}</div>
 				</div>])
 		}
@@ -131,7 +143,6 @@ export default function ChatTab(){
 	})
 
 	socket.on("channels joined", (channelsArray) => {
-		// console.log(channelsArray)
 		setChannelList(
 			channelsArray.map((channelFromArray) => {				
 				return(
@@ -154,10 +165,9 @@ export default function ChatTab(){
 	socket.on("channel messages" , ({id, messages}) => {
 		setMessageReceived(
 			messages.map((item) => {
-				// console.log()
 				return (
 					socket.userID == item.from ? 
-						<div className="from-user">
+						<div key={item._id} className="from-user">
 							<div id="delete-message">
 								<svg onClick={(e) => {deleteMessage(id, item._id)}} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="rgba(181, 17, 17, 0.6666666666666666)" d="M3.94 5L2.22 3.28a.75.75 0 1 1 1.06-1.06l18.5 18.5a.75.75 0 0 1-1.06 1.06l-2.19-2.19A3.751 3.751 0 0 1 15.025 22H8.974a3.75 3.75 0 0 1-3.733-3.389L4.07 6.5H2.75a.75.75 0 0 1 0-1.5h1.19ZM15 16.06l-1.5-1.5v2.69a.75.75 0 0 0 1.5 0v-1.19Zm-4.5-4.5L9 10.06v7.19a.75.75 0 0 0 1.5 0v-5.69ZM15 9.75v2.069l4.026 4.026l.905-9.345h1.319a.75.75 0 0 0 0-1.5H15.5a3.5 3.5 0 1 0-7 0h-.318l5.318 5.319V9.75a.75.75 0 0 1 1.5 0ZM14 5h-4a2 2 0 1 1 4 0Z"/></svg>
 							</div>
@@ -169,7 +179,7 @@ export default function ChatTab(){
 							}
 						</div>
 					:
-						<div>
+						<div key={item._id}>
 						{	
 							item.message == "message-unsent-system-deleted" ?
 							<div className={'mx-2 my-1 p-2 px-3 message-card deleted-message'}>{`${item.from} unsent a message`}</div>
@@ -185,7 +195,7 @@ export default function ChatTab(){
 	return(
 		user.id == null || user.id == undefined
 		?
-		navigate('/')
+		<Login />
 		:
 		<>
 			<Modal size='md' show={showModal} onHide={handleCloseModal} backdrop="static" keyboard={false} centered>
@@ -224,12 +234,15 @@ export default function ChatTab(){
 	                <Offcanvas.Body className="flex-column px-3">
 	                	<div className="search-bar">
 	                   		<input type="text" onKeyPress={searchChannel} className="search-input" placeholder="Search" value={channel} onChange={e => setChannel(e.target.value)}></input>
-	                   		<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+	                   		<svg xmlns="http://www.w3.org/2000/svg" onClick={e => {searchChannelPress()}} width="24" height="24" viewBox="0 0 24 24" fill="none">
 	                   		<path d="M21.6 22L15.3 15.7C14.8 16.1 14.225 16.4167 13.575 16.65C12.925 16.8833 12.2333 17 11.5 17C9.68333 17 8.146 16.3707 6.888 15.112C5.63 13.8533 5.00067 12.316 5 10.5C5 8.68333 5.62933 7.146 6.888 5.888C8.14667 4.63 9.684 4.00067 11.5 4C13.3167 4 14.854 4.62933 16.112 5.888C17.37 7.14667 17.9993 8.684 18 10.5C18 11.2333 17.8833 11.925 17.65 12.575C17.4167 13.225 17.1 13.8 16.7 14.3L23 20.6L21.6 22ZM11.5 15C12.75 15 13.8127 14.5623 14.688 13.687C15.5633 12.8117 16.0007 11.7493 16 10.5C16 9.25 15.5623 8.18733 14.687 7.312C13.8117 6.43667 12.7493 5.99933 11.5 6C10.25 6 9.18733 6.43767 8.312 7.313C7.43667 8.18833 6.99933 9.25067 7 10.5C7 11.75 7.43767 12.8127 8.313 13.688C9.18833 14.5633 10.2507 15.0007 11.5 15Z" fill="white"/>
 	                   		</svg>
                    		</div>
 	                    <div className="mt-5 channels-container">
 	                   		{channelList}
+	                    </div>
+	                    <div className="my-2">
+	                    	<div onClick={e => {logout()}} >Logout</div>
 	                    </div>
 	                </Offcanvas.Body>
 	            </Offcanvas>
