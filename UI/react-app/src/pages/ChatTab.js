@@ -4,7 +4,7 @@ import {Container, Card, Button, Form, Nav, Navbar, Offcanvas, Modal} from 'reac
 
 import socket from "../socket";
 import UserContext from '../UserContext';
-import Login from './Login'
+import Login from '../Login'
 
 
 export default function ChatTab(){
@@ -42,7 +42,7 @@ export default function ChatTab(){
 			return
 		}
 		divRef.current.scrollIntoView({ behavior: 'smooth' });
-	});
+	}, []);
 
 	useEffect(() => {
 		if(channel == ''){
@@ -193,10 +193,8 @@ export default function ChatTab(){
 	})
 
 	return(
-		user.id == null || user.id == undefined
+		user.id != null || user.id != undefined
 		?
-		<Login />
-		:
 		<>
 			<Modal size='md' show={showModal} onHide={handleCloseModal} backdrop="static" keyboard={false} centered>
 				<Modal.Header style={{color: 'white'}} >
@@ -268,5 +266,7 @@ export default function ChatTab(){
 				</div>
 			</div>
 		</>
+		:
+		navigate('/')
 	)
 }
