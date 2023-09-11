@@ -42,7 +42,7 @@ export default function ChatTab(){
 			return
 		}
 		divRef.current.scrollIntoView({ behavior: 'smooth' });
-	}, []);
+	});
 
 	useEffect(() => {
 		if(channel == ''){
